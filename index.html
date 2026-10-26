@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADFLIX</title>
+<style>
+  /* ================= BASE ================= */
+  :root {
+    --bg: #141414;
+    --red: #e50914;
+    --text: #fff;
+    --gray: #b3b3b3;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    user-select: none;
+  }
+  a { text-decoration: none; color: inherit; }
+  svg { fill: currentColor; }
+
+  /* ================= NAVBAR ================= */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 0 4%;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
+    transition: background 0.3s;
+  }
+  nav.scrolled { background: #141414; }
+  .nav-left { display: flex; align-items: center; gap: 30px; }
+  .logo {
+    color: var(--red);
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    cursor: pointer;
+  }
+  .nav-links {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    color: #e5e5e5;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); font-weight: 700; }
+  .nav-right { display: flex; align-items: center; gap: 20px; }
+  
+  /* Search Box */
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 6px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 36px;
+  }
+  .search-box.expanded {
+    background: rgba(0,0,0,0.75);
+    border-color: #fff;
+    width: 260px;
+    cursor: text;
+  }
+  .search-box svg { width: 24px; height: 24px; flex-shrink: 0; }
+  .search-box input {
+    width: 0;
+    opacity: 0;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    outline: none;
+    padding: 0;
+  }
+  .search-box.expanded input {
+    width: 100%;
+    opacity: 1;
+    margin-left: 10px;
+  }
+  
+  .nav-icon { width: 24px; height: 24px; cursor: pointer; color: #fff; }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ================= HERO ================= */
+  .hero {
+    position: relative;
+    height: 85vh;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    padding: 0 4%;
+    padding-top: 60px;
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center top;
+    z-index: -2;
+  }
+  .hero-grad {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--bg) 0%, rgba(20,20,20,0.4) 50%, rgba(0,0,0,0.7) 100%),
+                linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 60%);
+    z-index: -1;
+  }
+  .hero-content { max-width: 600px; width: 100%; }
+  .hero-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+  .hero-tag span.red { color: var(--red); }
+  .hero-title {
+    font-size: 4.5vw;
+    font-weight: 900;
+    line-height: 1.05;
+    margin-bottom: 14px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+    text-transform: uppercase;
+  }
+  .hero-tagline {
+    font-size: 1.3vw;
+    font-weight: 500;
+    margin-bottom: 14px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+  }
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+  }
+  .match { color: #46d369; }
+  .badge {
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 1px 6px;
+    font-size: 11px;
+    border-radius: 3px;
+    color: rgba(255,255,255,0.8);
+  }
+  .hero-desc {
+    font-size: 1.1vw;
+    line-height: 1.6;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+    margin-bottom: 24px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .hero-actions { display: flex; gap: 12px; align-items: center; }
+  .btn-play {
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.2s;
+  }
+  .btn-play:hover { background: rgba(255,255,255,0.8); }
+  .btn-play svg { width: 24px; height: 24px; }
+  .btn-info {
+    background: rgba(109, 109, 110, 0.7);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.2s;
+  }
+  .btn-info:hover { background: rgba(109, 109, 110, 0.5); }
+  .btn-info svg { width: 24px; height: 24px; }
+  .btn-icon {
+    background: rgba(42, 42, 42, 0.6);
+    border: 2px solid rgba(255,255,255,0.5);
+    border-radius: 50%;
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: #fff;
+    transition: 0.2s;
+  }
+  .btn-icon:hover { border-color: #fff; background: rgba(42, 42, 42, 0.9); }
+  .btn-icon svg { width: 24px; height: 24px; }
+  
+  .hero-dots {
+    position: absolute;
+    bottom: 25%;
+    right: 4%;
+    display: flex;
+    gap: 2px;
+  }
+  .dot { width: 15px; height: 2px; background: rgba(255,255,255,0.3); }
+  .dot.active { background: #fff; }
+
+  /* ================= ROWS ================= */
+  main { padding-bottom: 60px; position: relative; z-index: 10; margin-top: -80px; }
+  .row { margin-bottom: 3vw; }
+  .row-title { font-size: 1.4vw; font-weight: 600; color: #e5e5e5; margin-bottom: 12px; padding-left: 4%; }
+  .row-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px 4% 20px;
+    scrollbar-width: none;
+  }
+  .row-scroll::-webkit-scrollbar { display: none; }
+
+  /* Cards */
+  .card { flex: 0 0 auto; cursor: pointer; position: relative; transition: transform 0.3s ease, z-index 0.3s; border-radius: 4px; }
+  .card:hover { transform: scale(1.08); z-index: 20; box-shadow: 0 10px 20px rgba(0,0,0,0.6); }
+  
+  .card-portrait { width: 180px; }
+  .card-portrait img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 4px; display: block; }
+  
+  .card-landscape { width: 280px; }
+  .card-landscape img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px; display: block; }
+
+  /* Top 10 Card */
+  .card-top10 { display: flex; align-items: center; justify-content: center; width: 250px; margin-right: 20px; cursor: pointer; transition: transform 0.3s ease; }
+  .card-top10:hover { transform: scale(1.08); z-index: 20; }
+  .top10-num {
+    font-size: 150px;
+    font-weight: 900;
+    line-height: 1;
+    color: #141414;
+    -webkit-text-stroke: 4px #595959;
+    margin-right: -45px;
+    z-index: 1;
+    letter-spacing: -10px;
+    font-family: Arial, sans-serif;
+  }
+  .card-top10 img {
+    width: 140px;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    border-radius: 4px;
+    z-index: 2;
+    position: relative;
+  }
+
+  /* Progress Bar */
+  .progress-container {
+    position: absolute;
+    bottom: 0;
+    left: 0; width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar { height: 100%; background: var(--red); }
+
+  /* ================= SEARCH RESULTS ================= */
+  .search-results {
+    padding: 100px 4% 40px;
+    min-height: 100vh;
+    display: none;
+  }
+  .search-results.active { display: block; }
+  .search-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .search-grid .card { width: 100%; }
+
+  /* ================= MODAL PLAYER ================= */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal.active { display: flex; }
+  .modal-content {
+    background: #181818;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 950px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(0,0,0,0.9);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+  }
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 20px;
+    background: #181818;
+    border: none; color: #fff;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 20;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+  }
+  .modal-close:hover { background: #333; }
+  .modal-close svg { width: 24px; height: 24px; }
+  
+  .player-container {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    position: relative;
+  }
+  .player-container iframe {
+    position: absolute;
+    inset: 0; width: 100%; height: 100%;
+    border: 0;
+  }
+  
+  .modal-info { padding: 24px; overflow-y: auto; }
+  .modal-title { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
+  .modal-meta { display: flex; gap: 12px; font-size: 14px; margin-bottom: 14px; align-items: center; }
+  .modal-desc { font-size: 14px; line-height: 1.6; color: #ccc; margin-bottom: 20px; }
+
+  .player-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #333;
+    margin-bottom: 20px;
+  }
+  .ctrl-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ctrl-label { font-size: 12px; color: #888; text-transform: uppercase; font-weight: bold; }
+  .ctrl-btn {
+    background: #2a2a2a; color: #ddd;
+    border: 1px solid #444;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .ctrl-btn:hover { background: #444; }
+  .ctrl-btn.active { background: #fff; color: #000; border-color: #fff; font-weight: bold; }
+  .ctrl-select {
+    background: #2a2a2a; color: #eee;
+    border: 1px solid #444;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    max-width: 200px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero { height: 60vh; align-items: flex-end; padding-bottom: 60px; }
+    .hero-title { font-size: 32px; }
+    .hero-tagline { font-size: 14px; }
+    .hero-desc { font-size: 13px; -webkit-line-clamp: 3; }
+    .hero-meta { font-size: 12px; }
+    .row-title { font-size: 16px; }
+    .card-portrait { width: 120px; }
+    .card-landscape { width: 200px; }
+    .card-top10 { width: 180px; margin-right: 0; }
+    .top10-num { font-size: 100px; margin-right: -25px; -webkit-text-stroke: 3px #595959; letter-spacing: -5px; }
+    .card-top10 img { width: 90px; }
+    .nav-links { display: none; }
+    .hero-dots { display: none; }
+    .modal { padding: 10px; }
+    .modal-content { max-height: 95vh; }
+    .search-box.expanded { width: 200px; }
+    .search-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-left">
+    <div class="logo" onclick="resetSearch()">ADFLIX</div>
+    <div class="nav-links">
+      <a href="#" class="active" onclick="resetSearch()">Beranda</a>
+      <a href="#">Serial TV</a>
+      <a href="#">Film</a>
+      <a href="#">Baru & Populer</a>
+      <a href="#">Daftar Saya</a>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="search-box" id="searchBox" onclick="toggleSearch()">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input type="text" id="searchInput" placeholder="Judul, orang, genre" oninput="handleSearch(event)">
+    </div>
+    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+    <div class="avatar">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png" alt="Profile">
+    </div>
+  </div>
+</nav>
+
+<div id="mainContent">
+  <section class="hero" id="hero">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-grad"></div>
+    <div class="hero-content">
+      <div class="hero-tag"><span class="red">ADFLIX</span> &bull; <span id="heroType">SERIAL</span></div>
+      <h1 class="hero-title" id="heroTitle">Memuat...</h1>
+      <div class="hero-tagline" id="heroTagline"></div>
+      <div class="hero-meta">
+        <span class="match" id="heroMatch">98% cocok</span>
+        <span id="heroYear">2024</span>
+        <span class="badge" id="heroRating">16+</span>
+        <span id="heroSeason">1 Musim</span>
+        <span class="badge" style="padding:1px 4px; font-size:10px;">HD</span>
+      </div>
+      <p class="hero-desc" id="heroDesc"></p>
+      <div class="hero-actions">
+        <button class="btn-play" id="heroPlayBtn">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Putar
+        </button>
+        <button class="btn-info">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> Info lainnya
+        </button>
+        <button class="btn-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="hero-dots">
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </section>
+
+  <main>
+    <div class="row">
+      <h2 class="row-title">Lanjutkan Menonton</h2>
+      <div class="row-scroll" id="rowContinue"></div>
+    </div>
+    <div class="row">
+      <h2 class="row-title">Sedang Tren Hari Ini</h2>
+      <div class="row-scroll" id="rowTop10"></div>
+    </div>
+    <div class="row">
+      <h2 class="row-title">Hanya di ADFLIX</h2>
+      <div class="row-scroll" id="rowAdflix"></div>
+    </div>
+    <div class="row">
+      <h2 class="row-title">Yang Bikin Melek</h2>
+      <div class="row-scroll" id="rowThriller"></div>
+    </div>
+  </main>
+</div>
+
+<!-- SEARCH RESULTS -->
+<div class="search-results" id="searchResults">
+  <h2 class="row-title" style="padding-left:0; margin-bottom: 20px;" id="searchTitle">Hasil Pencarian</h2>
+  <div class="search-grid" id="searchGrid"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+    <div class="player-container" id="playerContainer"></div>
+    <div class="modal-info">
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <div class="modal-meta">
+        <span class="match" id="modalMatch">98% cocok</span>
+        <span id="modalYear">2024</span>
+        <span class="badge" id="modalRating">16+</span>
+        <span class="badge" style="padding:1px 4px; font-size:10px;">HD</span>
+      </div>
+      <div class="player-controls" id="playerControls"></div>
+      <p class="modal-desc" id="modalDesc"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const CONFIG = {
+  TMDB_KEY: 'dd11a47dcb98036b5c6f2c8fbb831e92',
+  BASE: 'https://api.themoviedb.org/3',
+  IMG_W500: 'https://image.tmdb.org/t/p/w500',
+  IMG_ORIG: 'https://image.tmdb.org/t/p/original',
+  LANG: 'id-ID',
+  PROVIDERS: [
+    { id: 'vidsrc', label: 'Server 1', movie: id=>`https://vidsrc.cc/v2/embed/movie/${id}?autoPlay=true`, tv: (id,s,e)=>`https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}?autoPlay=true` },
+    { id: 'vidlink', label: 'Server 2', movie: id=>`https://vidlink.pro/movie/${id}`, tv: (id,s,e)=>`https://vidlink.pro/tv/${id}/${s}/${e}` },
+    { id: '2embed', label: 'Server 3', movie: id=>`https://2embed.cc/embed/${id}`, tv: (id,s,e)=>`https://2embed.cc/embedtv/${id}&s=${s}&e=${e}` },
+    { id: 'vidsrc-to', label: 'Server 4', movie: id=>`https://vidsrc.to/embed/movie/${id}`, tv: (id,s,e)=>`https://vidsrc.to/embed/tv/${id}/${s}/${e}` }
+  ]
+};
+
+/* ================= STATE ================= */
+let heroData = null;
+let playerState = { movie: null, type: 'movie', season: 1, episode: 1, serverIndex: 0, seasons: [] };
+let searchTimeout;
+
+/* ================= API ================= */
+async function api(path, params = '') {
+  const res = await fetch(`${CONFIG.BASE}${path}?api_key=${CONFIG.TMDB_KEY}&language=${CONFIG.LANG}${params}`);
+  if (!res.ok) throw new Error('API Error');
+  return res.json();
+}
+
+/* ================= RENDER CARDS ================= */
+function createPortrait(m, showProgress = false) {
+  const p = m.poster_path ? CONFIG.IMG_W500 + m.poster_path : '';
+  const prog = showProgress ? `<div class="progress-container"><div class="progress-bar" style="width:${Math.floor(Math.random()*60)+20}%"></div></div>` : '';
+  return `
+    <div class="card card-portrait" onclick='openPlayer(${JSON.stringify({...m, type: m.media_type || (m.first_air_date?'tv':'movie')}).replace(/'/g,"&#39;")})'>
+      <img src="${p}" loading="lazy">
+      ${prog}
+    </div>`;
+}
+
+function createLandscape(m) {
+  const p = m.backdrop_path ? CONFIG.IMG_W500 + m.backdrop_path : (m.poster_path ? CONFIG.IMG_W500 + m.poster_path : '');
+  return `
+    <div class="card card-landscape" onclick='openPlayer(${JSON.stringify({...m, type: m.media_type || (m.first_air_date?'tv':'movie')}).replace(/'/g,"&#39;")})'>
+      <img src="${p}" loading="lazy">
+    </div>`;
+}
+
+function createTop10(m, rank) {
+  const p = m.poster_path ? CONFIG.IMG_W500 + m.poster_path : '';
+  return `
+    <div class="card-top10" onclick='openPlayer(${JSON.stringify({...m, type: m.media_type || (m.first_air_date?'tv':'movie')}).replace(/'/g,"&#39;")})'>
+      <div class="top10-num">${rank}</div>
+      <img src="${p}" loading="lazy">
+    </div>`;
+}
+
+/* ================= INIT DATA ================= */
+async function init() {
+  try {
+    const [trend, popular, netflix, thriller] = await Promise.all([
+      api('/trending/all/week'),
+      api('/movie/popular'),
+      api('/discover/tv', '&with_networks=213'),
+      api('/discover/movie', '&with_genres=53')
+    ]);
+
+    const h = trend.results.find(x => x.backdrop_path) || trend.results[0];
+    heroData = { ...h, type: h.media_type || (h.first_air_date?'tv':'movie') };
+    document.getElementById('heroBg').style.backgroundImage = `url(${CONFIG.IMG_ORIG}${h.backdrop_path})`;
+    document.getElementById('heroTitle').innerText = h.title || h.name;
+    document.getElementById('heroTagline').innerText = h.tagline || 'Cerita yang tak akan terlupakan.';
+    document.getElementById('heroMatch').innerText = `${Math.floor(Math.random()*15)+85}% cocok`;
+    document.getElementById('heroYear').innerText = (h.release_date || h.first_air_date || '2024').slice(0,4);
+    document.getElementById('heroType').innerText = heroData.type === 'tv' ? 'SERIAL' : 'FILM';
+    document.getElementById('heroSeason').innerText = heroData.type === 'tv' ? '1 Musim' : '2j 15m';
+    document.getElementById('heroDesc').innerText = h.overview;
+    document.getElementById('heroPlayBtn').onclick = () => openPlayer(heroData);
+
+    document.getElementById('rowContinue').innerHTML = popular.results.slice(0,4).map(m => createPortrait(m, true)).join('');
+    document.getElementById('rowTop10').innerHTML = trend.results.slice(0,10).map((m,i) => createTop10(m, i+1)).join('');
+    document.getElementById('rowAdflix').innerHTML = netflix.results.slice(0,12).map(m => createPortrait(m)).join('');
+    document.getElementById('rowThriller').innerHTML = thriller.results.slice(0,12).map(m => createLandscape(m)).join('');
+  } catch (e) {
+    console.error(e);
+    document.getElementById('heroTitle').innerText = 'Gagal terhubung ke TMDB';
+  }
+}
+
+/* ================= SEARCH ================= */
+function toggleSearch() {
+  const box = document.getElementById('searchBox');
+  const input = document.getElementById('searchInput');
+  box.classList.toggle('expanded');
+  if (box.classList.contains('expanded')) {
+    input.focus();
+  } else {
+    input.value = '';
+    resetSearch();
+  }
+}
+
+function resetSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchBox').classList.remove('expanded');
+  document.getElementById('searchResults').classList.remove('active');
+  document.getElementById('mainContent').style.display = 'block';
+}
+
+function handleSearch(e) {
+  const query = e.target.value.trim();
+  clearTimeout(searchTimeout);
+  
+  if (query.length === 0) {
+    document.getElementById('searchResults').classList.remove('active');
+    document.getElementById('mainContent').style.display = 'block';
+    return;
+  }
+  
+  if (query.length > 1) {
+    searchTimeout = setTimeout(async () => {
+      try {
+        const res = await api('/search/multi', `&query=${encodeURIComponent(query)}`);
+        const results = res.results.filter(m => m.media_type === 'movie' || m.media_type === 'tv');
+        
+        document.getElementById('mainContent').style.display = 'none';
+        document.getElementById('searchResults').classList.add('active');
+        
+        document.getElementById('searchTitle').innerText = `Hasil Pencarian: "${query}"`;
+        
+        if (results.length > 0) {
+          document.getElementById('searchGrid').innerHTML = results.map(m => createPortrait(m)).join('');
+        } else {
+          document.getElementById('searchGrid').innerHTML = `<p style="color:#888; grid-column:1/-1;">Tidak ada hasil ditemukan.</p>`;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }, 500);
+  }
+}
+
+/* ================= PLAYER / MODAL ================= */
+async function openPlayer(movie) {
+  const mType = movie.type || movie.media_type || (movie.first_air_date ? 'tv' : 'movie');
+  playerState = { movie, type: mType, season: 1, episode: 1, serverIndex: 0, seasons: [] };
+  
+  document.getElementById('modalTitle').innerText = movie.title || movie.name;
+  document.getElementById('modalMatch').innerText = `${Math.floor(Math.random()*15)+85}% cocok`;
+  document.getElementById('modalYear').innerText = (movie.release_date || movie.first_air_date || '2024').slice(0,4);
+  document.getElementById('modalRating').innerText = mType === 'tv' ? '16+' : '13+';
+  document.getElementById('modalDesc').innerText = movie.overview;
+  
+  document.getElementById('modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  
+  document.getElementById('playerContainer').innerHTML = `<iframe src="${buildUrl()}" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="origin"></iframe>`;
+
+  if (mType === 'tv') {
+    try {
+      const tv = await api(`/tv/${movie.id}`);
+      playerState.seasons = (tv.seasons || []).filter(s => s.season_number > 0);
+    } catch(e) { playerState.seasons = []; }
+  }
+
+  renderControls();
+}
+
+function buildUrl() {
+  const p = CONFIG.PROVIDERS[playerState.serverIndex];
+  if (!p) return '';
+  return playerState.type === 'tv' ? p.tv(playerState.movie.id, playerState.season, playerState.episode) : p.movie(playerState.movie.id);
+}
+
+function renderControls() {
+  const ctrl = document.getElementById('playerControls');
+  let html = `
+    <div class="ctrl-group">
+      <span class="ctrl-label">Server:</span>
+      ${CONFIG.PROVIDERS.map((p,i) => `<button class="ctrl-btn ${i===playerState.serverIndex?'active':''}" onclick="switchServer(${i})">${p.label}</button>`).join('')}
+    </div>
+  `;
+
+  if (playerState.type === 'tv') {
+    html += `
+      <div class="ctrl-group">
+        <span class="ctrl-label">Season:</span>
+        <select class="ctrl-select" onchange="changeSeason(this.value)">
+          ${playerState.seasons.map(s => `<option value="${s.season_number}" ${s.season_number===playerState.season?'selected':''}>Season ${s.season_number}</option>`).join('')}
+        </select>
+        <span class="ctrl-label">Episode:</span>
+        <select class="ctrl-select" id="epSel" onchange="changeEpisode(this.value)">
+          <option value="${playerState.episode}">Episode ${playerState.episode}</option>
+        </select>
+      </div>
+    `;
+    loadEps();
+  }
+  ctrl.innerHTML = html;
+}
+
+function switchServer(i) {
+  playerState.serverIndex = i;
+  document.getElementById('playerContainer').innerHTML = `<iframe src="${buildUrl()}" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="origin"></iframe>`;
+  renderControls();
+}
+
+function changeSeason(s) {
+  playerState.season = parseInt(s);
+  playerState.episode = 1;
+  document.getElementById('playerContainer').innerHTML = `<iframe src="${buildUrl()}" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="origin"></iframe>`;
+  renderControls();
+}
+
+function changeEpisode(e) {
+  playerState.episode = parseInt(e);
+  document.getElementById('playerContainer').innerHTML = `<iframe src="${buildUrl()}" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="origin"></iframe>`;
+  renderControls();
+}
+
+async function loadEps() {
+  const sel = document.getElementById('epSel');
+  if (!sel) return;
+  try {
+    const data = await api(`/tv/${playerState.movie.id}/season/${playerState.season}`);
+    sel.innerHTML = data.episodes.map(ep => `<option value="${ep.episode_number}" ${ep.episode_number===playerState.episode?'selected':''}>E${ep.episode_number} - ${ep.name||''}</option>`).join('');
+  } catch(e) {}
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+  document.body.style.overflow = '';
+  document.getElementById('playerContainer').innerHTML = '';
+}
+
+/* ================= UTILS ================= */
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+});
+document.addEventListener('keydown', e => { 
+  if(e.key === 'Escape') {
+    closeModal();
+    resetSearch();
+  }
+});
+
+init();
+</script>
+</body>
+</html>
